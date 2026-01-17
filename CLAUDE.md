@@ -113,6 +113,36 @@ interface ChartConfig {
 - Django ORM을 통한 데이터 접근 권장
 - 사용자 입력값은 반드시 검증 후 사용
 
+### 코드 환경 차이점 (중요)
+
+> **GitHub 레포지토리 코드 ≠ 사내 운영 코드**
+
+본 프로젝트는 다음과 같은 운영 방식을 따릅니다:
+
+| 환경 | 설명 |
+|------|------|
+| **GitHub 레포** | 민감 정보가 제거된 공개 가능한 코드 |
+| **사내 PC** | GitHub에서 clone/pull 후, 민감 정보가 포함된 로컬 전용 코드 추가 |
+
+#### 사내 PC에만 존재하는 항목 (예시)
+- DB 연결 정보가 포함된 설정 파일
+- 내부 API 엔드포인트 및 인증 키
+- 사내 전용 데이터 소스 연결 로직
+- 운영 환경 전용 Docker/Nginx 설정
+
+#### Claude Code 작업 시 유의사항
+1. **코드 누락 가능성 인지**: 레포에 없는 코드가 사내 환경에 존재할 수 있음
+2. **Placeholder 패턴 사용**: 민감 정보는 `# TODO: 사내 환경에서 설정` 또는 환경 변수로 대체
+3. **질문하기**: 특정 설정이나 연결 정보가 필요할 경우, 사용자에게 확인 요청
+
+```python
+# 예시: 레포에 커밋되는 코드
+DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///local.db')
+
+# 예시: 사내 PC에서만 존재하는 .env.local
+# DATABASE_URL=mysql://user:password@internal-server:3306/reports
+```
+
 ---
 
 ## URL 구조
