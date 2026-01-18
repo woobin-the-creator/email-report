@@ -1,0 +1,22 @@
+# Django Core
+Django>=4.2,<5.0
+djangorestframework>=3.14.0
+
+# Database
+mysqlclient>=2.2.0
+
+# CORS
+django-cors-headers>=4.3.0
+
+# WSGI Server
+gunicorn>=21.2.0
+
+# Environment Variables
+python-dotenv>=1.0.0
+
+# Cron Jobs
+django-crontab>=0.7.1
+
+# Utilities
+pytz>=2023.3
+python-dateutil>=2.8.2
