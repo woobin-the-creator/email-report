@@ -1,6 +1,9 @@
 ---
 name: frontend-design
 description: 독창적이고 프로덕션 수준의 프론트엔드 인터페이스 설계. 제네릭한 AI 스타일을 거부하고 의도적인 디자인 방향 추구.
+recommended_agents:
+  - ui-designer
+  - frontend-developer
 ---
 
 # Frontend Design Skill

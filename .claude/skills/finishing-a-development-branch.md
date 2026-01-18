@@ -1,6 +1,8 @@
 ---
 name: finishing-a-development-branch
 description: 개발 브랜치 완료 프로세스. 테스트 검증 후 4가지 옵션 제시, 선택된 작업 실행.
+recommended_agents:
+  - git-workflow-manager
 ---
 
 # Finishing a Development Branch Skill

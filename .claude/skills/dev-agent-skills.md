@@ -1,6 +1,8 @@
 ---
 name: dev-agent-skills
 description: Git 및 GitHub 워크플로우 자동화. 커밋, PR 생성, PR 리뷰 처리를 위한 통합 스킬.
+recommended_agents:
+  - git-workflow-manager
 ---
 
 # Development Agent Skills

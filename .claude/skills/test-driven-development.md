@@ -1,6 +1,8 @@
 ---
 name: test-driven-development
 description: TDD(Test-Driven Development) 방법론. 테스트 먼저 작성, 실패 확인 후 최소한의 코드로 통과시키는 개발 사이클.
+recommended_agents:
+  - test-automator
 ---
 
 # Test-Driven Development (TDD) Skill

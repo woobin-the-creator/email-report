@@ -1,6 +1,8 @@
 ---
 name: code-review
 description: 보안, 성능, 테스트, 설계를 포괄하는 코드 리뷰 수행. PR 검토 및 품질 피드백 제공.
+recommended_agents:
+  - code-reviewer
 ---
 
 # Code Review Skill

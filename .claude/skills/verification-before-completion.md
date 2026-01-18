@@ -1,6 +1,8 @@
 ---
 name: verification-before-completion
 description: 작업 완료 전 필수 검증 프로토콜. 실제 명령 실행 후 증거 기반 완료 선언.
+recommended_agents:
+  - test-automator
 ---
 
 # Verification Before Completion Skill

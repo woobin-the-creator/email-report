@@ -1,6 +1,8 @@
 ---
 name: varlock
 description: 환경 변수 보안 관리. 시크릿이 터미널, 로그, Claude 컨텍스트에 노출되지 않도록 보호.
+recommended_agents:
+  - devops-engineer
 ---
 
 # Varlock Security Skill

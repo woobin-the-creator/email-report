@@ -1,6 +1,8 @@
 ---
 name: systematic-debugging
 description: 체계적 디버깅 방법론. 근본 원인 조사 후 수정, 가설 기반 테스트, 한 번에 하나씩 변경.
+recommended_agents:
+  - debugger
 ---
 
 # Systematic Debugging Skill

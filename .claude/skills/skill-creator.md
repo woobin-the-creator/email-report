@@ -1,6 +1,8 @@
 ---
 name: skill-creator
 description: Claude 기능 확장을 위한 커스텀 스킬 개발 가이드. 스킬 구조, 설계 원칙, 작성 방법.
+recommended_agents:
+  - documentation-engineer
 ---
 
 # Skill Creator Guide

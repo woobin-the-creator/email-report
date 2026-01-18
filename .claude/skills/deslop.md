@@ -1,6 +1,8 @@
 ---
 name: deslop
 description: 부실한 코드(slop) 정리 및 리팩토링. 코드 품질 개선, 불필요한 복잡성 제거, 가독성 향상.
+recommended_agents:
+  - refactoring-specialist
 ---
 
 # Deslop Skill
