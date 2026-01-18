@@ -1,6 +1,8 @@
 ---
 name: playwright-skill
 description: Playwright를 이용한 브라우저 자동화. 개발 서버 자동 감지, 테스트 스크립트 작성, 폼/로그인/반응형 테스트.
+recommended_agents:
+  - test-automator
 ---
 
 # Playwright Browser Automation Skill

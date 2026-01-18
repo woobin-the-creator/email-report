@@ -1,6 +1,8 @@
 ---
 name: react-best-practices
 description: React 및 Next.js 성능 최적화 가이드라인. 컴포넌트 작성, 데이터 페칭, 번들 크기 최적화에 활용.
+recommended_agents:
+  - react-specialist
 ---
 
 # React Best Practices Skill

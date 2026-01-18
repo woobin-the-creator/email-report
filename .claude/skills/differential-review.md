@@ -1,6 +1,9 @@
 ---
 name: differential-review
 description: 보안 중심 코드 변경 검토. git 히스토리 분석, 코드베이스 크기별 적응형 분석 깊이.
+recommended_agents:
+  - code-reviewer
+  - architect-reviewer
 ---
 
 # Differential Security Review Skill

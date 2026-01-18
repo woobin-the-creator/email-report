@@ -1,6 +1,9 @@
 ---
 name: find-bugs
 description: 보안 및 품질 이슈에 집중한 코드 리뷰 방법론. 5단계 프로세스로 체계적인 버그 탐지.
+recommended_agents:
+  - debugger
+  - code-reviewer
 ---
 
 # Find Bugs Skill

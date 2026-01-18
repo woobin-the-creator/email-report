@@ -1,6 +1,8 @@
 ---
 name: webapp-testing
 description: 로컬 웹 애플리케이션을 Playwright를 통해 테스트하는 자동화 도구. E2E 테스트, iframe 동작 확인, 차트 상호작용 검증에 활용.
+recommended_agents:
+  - test-automator
 ---
 
 # Web Application Testing Skill
