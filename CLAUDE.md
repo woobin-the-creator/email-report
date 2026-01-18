@@ -230,10 +230,123 @@ email-report/
 - Subagents: `.claude/agents/` 폴더의 subagent(Task 도구)를 호출한 경우 표시
 - 토큰 사용량은 모델 내부에서 접근 불가하여 표시하지 않음
 
+---
+
+### Subagents 활용 가이드 (필수)
+
+> **원칙**: 전문 영역 작업은 반드시 해당 Subagent를 사용하세요.
+
+#### 작업 유형별 Subagent 매핑표
+
+| 작업 유형 | 사용할 Subagent | 사용 시점 예시 |
+|-----------|----------------|---------------|
+| **Docker/인프라 구축** | `devops-engineer` | Docker 파일 작성, CI/CD 설정, 배포 자동화 |
+| **React 컴포넌트 개발** | `react-specialist` | Hooks 구현, Context 설계, 성능 최적화 |
+| **Django Backend 개발** | `backend-developer` | API 개발, 모델 설계, 비즈니스 로직 |
+| **TypeScript 타입 설계** | `typescript-pro` | 복잡한 제네릭, 고급 타입 추론, 타입 안전성 |
+| **코드 리팩토링** | `refactoring-specialist` | 구조 개선, 중복 제거, 디자인 패턴 적용 |
+| **테스트 작성** | `test-automator` | 단위 테스트, E2E 테스트, 테스트 커버리지 |
+| **문서 작성** | `documentation-engineer` | 기술 문서, API 문서, README 작성 |
+| **디버깅** | `debugger` | 복잡한 버그 추적, 에러 원인 분석 |
+| **코드베이스 탐색** | `Explore` | 구조 파악, 키워드 검색, 아키텍처 이해 |
+| **코드 리뷰** | `code-reviewer` | 품질 검토, 보안 취약점 점검 |
+| **아키텍처 설계** | `Plan` | 구현 계획 수립, 기술 스택 선택 |
+| **UI/UX 개선** | `ui-designer` | 디자인 시스템, 사용성 개선, 접근성 |
+| **풀스택 기능 개발** | `fullstack-developer` | End-to-end 기능 구현 |
+| **SQL/데이터베이스** | `sql-pro` | 복잡한 쿼리, 성능 최적화, 인덱스 설계 |
+| **Git 워크플로우** | `git-workflow-manager` | 브랜치 전략, 머지 충돌 해결 |
+
+#### 필수 사용 규칙
+
+**반드시 Subagent를 사용해야 하는 경우:**
+
+1. ✅ **Docker/DevOps 작업** → `devops-engineer`
+   ```
+   예: Dockerfile 작성, docker-compose 설정, Nginx 구성
+   ```
+
+2. ✅ **React 컴포넌트 3개 이상 개발** → `react-specialist`
+   ```
+   예: 차트 컴포넌트 4개 개발, 에디터 UI 구현
+   ```
+
+3. ✅ **Django 앱 전체 구조 구축** → `backend-developer`
+   ```
+   예: models, views, serializers 일괄 생성
+   ```
+
+4. ✅ **코드베이스 구조 파악** → `Explore`
+   ```
+   예: "어디서 에러 처리하는지 찾아줘", "프로젝트 구조 설명해줘"
+   ```
+
+5. ✅ **복잡한 구현 계획 수립** → `Plan`
+   ```
+   예: Phase 2 에디터 개발 전체 계획
+   ```
+
+6. ✅ **문서 작성 (1000자 이상)** → `documentation-engineer`
+   ```
+   예: API 문서, 설치 가이드, 아키텍처 문서
+   ```
+
+**직접 작업 가능한 경우:**
+
+- ❌ 단순 파일 1-2개 수정
+- ❌ 간단한 설정 변경
+- ❌ 짧은 버그 수정
+
+#### 사용 예시
+
+```typescript
+// 나쁜 예: 직접 작업
+"Docker 설정 파일 4개를 직접 작성..." ❌
+
+// 좋은 예: Subagent 활용
+Task(devops-engineer, "Docker 환경 구성:
+- docker-compose.yml
+- Backend/Frontend Dockerfile
+- Nginx 설정") ✅
+```
+
+---
+
 ### 추천 작업 흐름
-1. **탐색**: 코드베이스 구조 파악 시 Task(Explore) 활용
-2. **구현**: 기능 개발 시 TodoWrite로 단계별 계획 수립
-3. **검증**: 작업 완료 후 lint/type-check 실행
+
+#### Phase별 Subagent 활용 전략
+
+**Phase 1: 기반 구축**
+```
+1. devops-engineer → Docker 환경 구성
+2. backend-developer → Django 프로젝트 생성
+3. react-specialist → React 프로젝트 생성
+4. react-specialist → 차트 컴포넌트 4개 개발
+5. test-automator → 통합 테스트
+```
+
+**Phase 2: 에디터 개발**
+```
+1. Plan → 에디터 아키텍처 설계
+2. react-specialist → 드래그앤드롭 에디터
+3. backend-developer → 템플릿 API
+4. fullstack-developer → Frontend-Backend 연동
+```
+
+**Phase 3: 자동화**
+```
+1. backend-developer → Cron 스케줄러
+2. devops-engineer → 배포 자동화
+3. test-automator → E2E 테스트
+```
+
+#### 일반 작업 흐름
+
+1. **탐색**: 코드베이스 구조 파악 → `Explore`
+2. **계획**: 복잡한 기능 계획 → `Plan`
+3. **구현**: 전문 영역 개발 → 해당 Subagent
+4. **검증**: 테스트 작성 → `test-automator`
+5. **리뷰**: 코드 품질 검토 → `code-reviewer`
+6. **문서화**: 기술 문서 작성 → `documentation-engineer`
 
 ### 효과적인 요청 예시
 ```
