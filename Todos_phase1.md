@@ -4,7 +4,7 @@
 
 | No | 작업 | 설명 | 상태 |
 |----|------|------|------|
-| 1 | Docker 환경 구성 | `docker-compose.yml`, Dockerfile 작성 (Nginx, Django, MySQL, React) | ⬜ |
+| 1 | Docker 환경 구성 | `docker-compose.yml`, Dockerfile 작성 (Nginx, Django, MySQL, React) | ✅ |
 
 ---
 
