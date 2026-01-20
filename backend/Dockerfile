@@ -28,11 +28,17 @@ RUN pip install --upgrade pip && \
 # 애플리케이션 코드 복사
 COPY . .
 
+# entrypoint 스크립트에 실행 권한 부여
+RUN chmod +x /app/entrypoint.sh
+
 # Static files 디렉토리 생성
 RUN mkdir -p /app/staticfiles /app/media
 
 # 포트 노출
 EXPOSE 8000
+
+# Entrypoint 설정 (migrate, collectstatic 자동 실행)
+ENTRYPOINT ["/app/entrypoint.sh"]
 
 # Gunicorn으로 Django 실행
 CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]

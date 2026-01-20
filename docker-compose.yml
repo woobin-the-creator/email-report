@@ -31,10 +31,7 @@ services:
       dockerfile: Dockerfile
     container_name: email_report_backend
     restart: unless-stopped
-    command: >
-      sh -c "python manage.py migrate &&
-             python manage.py collectstatic --noinput &&
-             gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3"
+    # command는 제거 (entrypoint.sh에서 migrate, collectstatic 자동 실행)
     volumes:
       - ./backend:/app
       - static_volume:/app/staticfiles
