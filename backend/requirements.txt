@@ -3,7 +3,9 @@ Django>=4.2,<5.0
 djangorestframework>=3.14.0
 
 # Database
-mysqlclient>=2.2.0
+# mysqlclient>=2.2.0  # C 확장 빌드 문제로 PyMySQL로 대체
+PyMySQL>=1.1.0
+cryptography>=41.0.0  # PyMySQL에서 보안 연결을 위해 필요
 
 # CORS
 django-cors-headers>=4.3.0
