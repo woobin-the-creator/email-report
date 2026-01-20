@@ -13,8 +13,11 @@ WORKDIR /app
 # 시스템 패키지 업데이트 및 필수 패키지 설치
 RUN apt-get update && apt-get install -y \
     gcc \
+    g++ \
+    python3-dev \
     default-libmysqlclient-dev \
     pkg-config \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 # requirements.txt 복사 및 의존성 설치
