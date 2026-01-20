@@ -12,8 +12,8 @@
 
 | No | 작업 | 설명 | 상태 |
 |----|------|------|------|
-| 2 | Django 프로젝트 생성 | DRF 설정, CORS 설정, 기본 구조 | ⬜ |
-| 3 | DB 모델 생성 | `report_templates`, `data_sources`, `generated_reports` 테이블 | ⬜ |
+| 2 | Django 프로젝트 생성 | DRF 설정, CORS 설정, 기본 구조 | ✅ |
+| 3 | DB 모델 생성 | `report_templates`, `data_sources`, `generated_reports` 테이블 | ✅ |
 | 4 | REST API 구현 | `/api/data/`, `/api/templates/` 엔드포인트 | ⬜ |
 
 ---
@@ -22,8 +22,8 @@
 
 | No | 작업 | 설명 | 상태 |
 |----|------|------|------|
-| 5 | React 프로젝트 생성 | Vite + TypeScript 기반 | ⬜ |
-| 6 | 라우트 구현 | React Router로 `/report/:date` 경로 설정 | ⬜ |
+| 5 | React 프로젝트 생성 | Vite + TypeScript 기반 | ✅ |
+| 6 | 라우트 구현 | React Router로 `/report/:date` 경로 설정 | ✅ |
 
 ---
 

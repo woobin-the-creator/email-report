@@ -58,6 +58,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      target: development
       args:
         - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost:8000}
     container_name: email_report_frontend
