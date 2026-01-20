@@ -11,13 +11,13 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 
 # 시스템 패키지 업데이트 및 필수 패키지 설치
+# PyMySQL 사용으로 MySQL C 라이브러리 불필요
+# cryptography 패키지를 위한 최소 빌드 도구만 설치
 RUN apt-get update && apt-get install -y \
     gcc \
-    g++ \
     python3-dev \
-    default-libmysqlclient-dev \
-    pkg-config \
-    build-essential \
+    libffi-dev \
+    libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # requirements.txt 복사 및 의존성 설치
