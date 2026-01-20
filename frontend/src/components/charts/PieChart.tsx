@@ -130,6 +130,7 @@ const PieChart: React.FC<PieChartProps> = ({
       )}
       <ResponsiveContainer width="100%" height={height}>
         <RechartsPieChart>
+          {/* 메인 Pie - 외부 이름 레이블 */}
           <Pie
             data={data}
             cx="50%"
@@ -150,29 +151,31 @@ const PieChart: React.FC<PieChartProps> = ({
                 strokeWidth={2}
               />
             ))}
-            {/* 내부 퍼센트 레이블 */}
-            {showDataLabel && (
-              <Pie
-                data={data}
-                cx="50%"
-                cy="50%"
-                innerRadius={innerRadius}
-                outerRadius={outerRadius}
-                dataKey={dataKey}
-                nameKey={nameKey}
-                label={renderCustomizedLabel}
-                labelLine={false}
-                isAnimationActive={false}
-              >
-                {data.map((_, index) => (
-                  <Cell
-                    key={`cell-inner-${index}`}
-                    fill="transparent"
-                  />
-                ))}
-              </Pie>
-            )}
           </Pie>
+          {/* 내부 퍼센트 레이블용 Pie (형제 레벨) */}
+          {showDataLabel && (
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              innerRadius={innerRadius}
+              outerRadius={outerRadius}
+              dataKey={dataKey}
+              nameKey={nameKey}
+              label={renderCustomizedLabel}
+              labelLine={false}
+              isAnimationActive={false}
+              fill="transparent"
+            >
+              {data.map((_, index) => (
+                <Cell
+                  key={`cell-inner-${index}`}
+                  fill="transparent"
+                  stroke="transparent"
+                />
+              ))}
+            </Pie>
+          )}
           <Tooltip
             contentStyle={{
               backgroundColor: '#FFFFFF',

@@ -43,13 +43,27 @@ const Report: React.FC = () => {
   const { date } = useParams<{ date: string }>()
   const [loading, setLoading] = useState(true)
 
-  // 날짜 포맷팅 (yyyymmdd → yyyy년 mm월 dd일)
+  // 날짜 포맷팅 및 유효성 검사 (yyyymmdd → yyyy년 mm월 dd일)
   const formatDate = (dateStr: string | undefined): string => {
-    if (!dateStr || dateStr.length !== 8) return dateStr || '날짜 없음'
-    const year = dateStr.slice(0, 4)
-    const month = dateStr.slice(4, 6)
-    const day = dateStr.slice(6, 8)
-    return `${year}년 ${parseInt(month)}월 ${parseInt(day)}일`
+    if (!dateStr) return '날짜 없음'
+
+    // 숫자 8자리 형식 검증
+    if (!/^\d{8}$/.test(dateStr)) return '잘못된 날짜 형식'
+
+    const year = parseInt(dateStr.slice(0, 4))
+    const month = parseInt(dateStr.slice(4, 6))
+    const day = parseInt(dateStr.slice(6, 8))
+
+    // 날짜 범위 검증
+    if (year < 2000 || year > 2100) return '잘못된 연도'
+    if (month < 1 || month > 12) return '잘못된 월'
+    if (day < 1 || day > 31) return '잘못된 일'
+
+    // 월별 일수 검증 (간단 버전)
+    const daysInMonth = new Date(year, month, 0).getDate()
+    if (day > daysInMonth) return '잘못된 날짜'
+
+    return `${year}년 ${month}월 ${day}일`
   }
 
   useEffect(() => {
