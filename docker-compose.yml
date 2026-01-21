@@ -33,9 +33,9 @@ services:
     restart: unless-stopped
     # command는 제거 (entrypoint.sh에서 migrate, collectstatic 자동 실행)
     volumes:
-      - ./backend:/app
-      - static_volume:/app/staticfiles
-      - media_volume:/app/media
+      - ./backend:/appdata/appuser/email_report/backend
+      - static_volume:/appdata/appuser/email_report/backend/staticfiles
+      - media_volume:/appdata/appuser/email_report/backend/media
     ports:
       - "10004:10004"
     environment:

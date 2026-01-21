@@ -8,7 +8,7 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
 # 작업 디렉토리 설정
-WORKDIR /app
+WORKDIR /appdata/appuser/email_report/backend
 
 # 시스템 패키지 업데이트 및 필수 패키지 설치
 # PyMySQL 사용으로 MySQL C 라이브러리 불필요
@@ -29,16 +29,16 @@ RUN pip install --upgrade pip && \
 COPY . .
 
 # entrypoint 스크립트에 실행 권한 부여
-RUN chmod +x /app/entrypoint.sh
+RUN chmod +x /appdata/appuser/email_report/backend/entrypoint.sh
 
 # Static files 디렉토리 생성
-RUN mkdir -p /app/staticfiles /app/media
+RUN mkdir -p /appdata/appuser/email_report/backend/staticfiles /appdata/appuser/email_report/backend/media
 
 # 포트 노출
 EXPOSE 10004
 
 # Entrypoint 설정 (migrate, collectstatic 자동 실행)
-ENTRYPOINT ["/app/entrypoint.sh"]
+ENTRYPOINT ["/appdata/appuser/email_report/backend/entrypoint.sh"]
 
 # Gunicorn으로 Django 실행
 CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:10004", "--workers", "3"]
