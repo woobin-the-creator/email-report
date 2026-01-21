@@ -6,7 +6,8 @@ CREATE DATABASE IF NOT EXISTS email_reports CHARACTER SET utf8mb4 COLLATE utf8mb
 
 -- 사용자 생성 및 권한 설정
 -- MySQL 8.0에서는 CREATE USER가 필수
-CREATE USER IF NOT EXISTS 'django_user'@'%' IDENTIFIED BY 'django_password';
+-- PyMySQL 호환성을 위해 mysql_native_password 사용
+CREATE USER IF NOT EXISTS 'django_user'@'%' IDENTIFIED WITH mysql_native_password BY 'django_password';
 GRANT ALL PRIVILEGES ON email_reports.* TO 'django_user'@'%';
 FLUSH PRIVILEGES;
 
