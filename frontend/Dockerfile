@@ -34,7 +34,7 @@ COPY . .
 
 EXPOSE 10005
 
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+CMD ["npm", "run", "dev"]
 
 # Stage 3: Production with Nginx
 FROM nginx:alpine AS production
