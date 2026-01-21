@@ -8,7 +8,7 @@ drf-spectacular를 사용한 OpenAPI 3.0 기반 API 문서화가 완료되었습
 
 ### 1. Swagger UI (인터랙티브)
 ```
-http://localhost:8000/api/docs/
+http://localhost:10004/api/docs/
 ```
 
 **기능:**
@@ -19,7 +19,7 @@ http://localhost:8000/api/docs/
 
 ### 2. ReDoc (읽기 전용)
 ```
-http://localhost:8000/api/redoc/
+http://localhost:10004/api/redoc/
 ```
 
 **기능:**
@@ -29,7 +29,7 @@ http://localhost:8000/api/redoc/
 
 ### 3. OpenAPI Schema (JSON)
 ```
-http://localhost:8000/api/schema/
+http://localhost:10004/api/schema/
 ```
 
 **사용처:**
@@ -52,7 +52,7 @@ docker compose up -d
 docker compose exec backend pip install -r requirements.txt
 
 # 3. 브라우저에서 Swagger UI 접속
-# http://localhost:8000/api/docs/
+# http://localhost:10004/api/docs/
 ```
 
 ### 로컬 환경에서 실행
@@ -70,7 +70,7 @@ pip install -r requirements.txt
 python manage.py runserver
 
 # 4. 브라우저에서 접속
-# http://localhost:8000/api/docs/
+# http://localhost:10004/api/docs/
 ```
 
 ---
@@ -282,7 +282,7 @@ Swagger UI 상단의 **Filter by tag** 또는 검색창 사용:
 3. **Link** 탭 선택
 4. URL 입력:
    ```
-   http://localhost:8000/api/schema/
+   http://localhost:10004/api/schema/
    ```
 5. **Continue** → **Import**
 6. 모든 API가 Collection으로 import됨
@@ -293,7 +293,7 @@ Swagger UI 상단의 **Filter by tag** 또는 검색창 사용:
 2. **Import/Export** → **Import Data** → **From URL**
 3. URL 입력:
    ```
-   http://localhost:8000/api/schema/
+   http://localhost:10004/api/schema/
    ```
 4. **Fetch and Import**
 
@@ -462,4 +462,4 @@ ViewSet에 `@extend_schema` 데코레이터가 적용되었는지 확인
 
 ---
 
-**Swagger API 문서화가 완료되었습니다!** 브라우저에서 `http://localhost:8000/api/docs/`를 열어 확인하세요.
+**Swagger API 문서화가 완료되었습니다!** 브라우저에서 `http://localhost:10004/api/docs/`를 열어 확인하세요.

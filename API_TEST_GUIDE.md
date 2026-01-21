@@ -78,7 +78,7 @@ docker compose logs -f backend
 ### 3.1. 서버 상태 확인
 
 ```bash
-curl http://localhost:8000/admin/
+curl http://localhost:10004/admin/
 ```
 
 정상이면 Django admin 페이지 HTML이 반환됩니다.
@@ -90,7 +90,7 @@ curl http://localhost:8000/admin/
 ### 4.1. 템플릿 생성 (POST)
 
 ```bash
-curl -X POST http://localhost:8000/api/reports/templates/ \
+curl -X POST http://localhost:10004/api/reports/templates/ \
   -H "Content-Type: application/json" \
   -d '{
     "name": "일일 리포트 v1",
@@ -148,7 +148,7 @@ curl -X POST http://localhost:8000/api/reports/templates/ \
 ### 4.2. 템플릿 목록 조회 (GET)
 
 ```bash
-curl http://localhost:8000/api/reports/templates/
+curl http://localhost:10004/api/reports/templates/
 ```
 
 **예상 응답:**
@@ -168,19 +168,19 @@ curl http://localhost:8000/api/reports/templates/
 ### 4.3. 템플릿 상세 조회 (GET)
 
 ```bash
-curl http://localhost:8000/api/reports/templates/1/
+curl http://localhost:10004/api/reports/templates/1/
 ```
 
 ### 4.4. 활성 템플릿만 조회 (GET - Custom Action)
 
 ```bash
-curl http://localhost:8000/api/reports/templates/active/
+curl http://localhost:10004/api/reports/templates/active/
 ```
 
 ### 4.5. 템플릿 복제 (POST - Custom Action)
 
 ```bash
-curl -X POST http://localhost:8000/api/reports/templates/1/duplicate/ \
+curl -X POST http://localhost:10004/api/reports/templates/1/duplicate/ \
   -H "Content-Type: application/json" \
   -d '{
     "name": "일일 리포트 v2"
@@ -190,7 +190,7 @@ curl -X POST http://localhost:8000/api/reports/templates/1/duplicate/ \
 ### 4.6. 템플릿 수정 (PATCH)
 
 ```bash
-curl -X PATCH http://localhost:8000/api/reports/templates/1/ \
+curl -X PATCH http://localhost:10004/api/reports/templates/1/ \
   -H "Content-Type: application/json" \
   -d '{
     "description": "매출, 생산, 재고 현황"
@@ -200,7 +200,7 @@ curl -X PATCH http://localhost:8000/api/reports/templates/1/ \
 ### 4.7. 템플릿 삭제 (DELETE)
 
 ```bash
-curl -X DELETE http://localhost:8000/api/reports/templates/1/
+curl -X DELETE http://localhost:10004/api/reports/templates/1/
 ```
 
 ---
@@ -210,7 +210,7 @@ curl -X DELETE http://localhost:8000/api/reports/templates/1/
 ### 5.1. 데이터 소스 생성 (POST)
 
 ```bash
-curl -X POST http://localhost:8000/api/data-sources/sources/ \
+curl -X POST http://localhost:10004/api/data-sources/sources/ \
   -H "Content-Type: application/json" \
   -d '{
     "name": "일일매출",
@@ -244,19 +244,19 @@ curl -X POST http://localhost:8000/api/data-sources/sources/ \
 ### 5.2. 데이터 소스 목록 조회 (GET)
 
 ```bash
-curl http://localhost:8000/api/data-sources/sources/
+curl http://localhost:10004/api/data-sources/sources/
 ```
 
 ### 5.3. 데이터 소스 상세 조회 (GET)
 
 ```bash
-curl http://localhost:8000/api/data-sources/sources/1/
+curl http://localhost:10004/api/data-sources/sources/1/
 ```
 
 ### 5.4. 컬럼 목록 조회 (GET - Custom Action)
 
 ```bash
-curl http://localhost:8000/api/data-sources/sources/1/columns/
+curl http://localhost:10004/api/data-sources/sources/1/columns/
 ```
 
 **예상 응답:**
@@ -278,7 +278,7 @@ curl http://localhost:8000/api/data-sources/sources/1/columns/
 ### 6.1. 기본 데이터 조회 (POST)
 
 ```bash
-curl -X POST http://localhost:8000/api/data-sources/query/ \
+curl -X POST http://localhost:10004/api/data-sources/query/ \
   -H "Content-Type: application/json" \
   -d '{
     "table_name": "daily_sales",
@@ -313,7 +313,7 @@ curl -X POST http://localhost:8000/api/data-sources/query/ \
 ### 6.2. 날짜 범위 조회
 
 ```bash
-curl -X POST http://localhost:8000/api/data-sources/query/ \
+curl -X POST http://localhost:10004/api/data-sources/query/ \
   -H "Content-Type: application/json" \
   -d '{
     "table_name": "daily_sales",
@@ -326,7 +326,7 @@ curl -X POST http://localhost:8000/api/data-sources/query/ \
 ### 6.3. 특정 컬럼만 조회
 
 ```bash
-curl -X POST http://localhost:8000/api/data-sources/query/ \
+curl -X POST http://localhost:10004/api/data-sources/query/ \
   -H "Content-Type: application/json" \
   -d '{
     "table_name": "daily_sales",
@@ -342,7 +342,7 @@ curl -X POST http://localhost:8000/api/data-sources/query/ \
 ### 7.1. 잘못된 테이블명 (차단되어야 함)
 
 ```bash
-curl -X POST http://localhost:8000/api/data-sources/query/ \
+curl -X POST http://localhost:10004/api/data-sources/query/ \
   -H "Content-Type: application/json" \
   -d '{
     "table_name": "users; DROP TABLE users--"
@@ -360,7 +360,7 @@ curl -X POST http://localhost:8000/api/data-sources/query/ \
 ### 7.2. 잘못된 컬럼명 (차단되어야 함)
 
 ```bash
-curl -X POST http://localhost:8000/api/data-sources/query/ \
+curl -X POST http://localhost:10004/api/data-sources/query/ \
   -H "Content-Type: application/json" \
   -d '{
     "table_name": "daily_sales",
@@ -379,7 +379,7 @@ curl -X POST http://localhost:8000/api/data-sources/query/ \
 ### 7.3. 존재하지 않는 컬럼 (차단되어야 함)
 
 ```bash
-curl -X POST http://localhost:8000/api/data-sources/query/ \
+curl -X POST http://localhost:10004/api/data-sources/query/ \
   -H "Content-Type: application/json" \
   -d '{
     "table_name": "daily_sales",
@@ -403,19 +403,19 @@ curl -X POST http://localhost:8000/api/data-sources/query/ \
 ### 8.1. 리포트 목록 조회
 
 ```bash
-curl http://localhost:8000/api/reports/reports/
+curl http://localhost:10004/api/reports/reports/
 ```
 
 ### 8.2. 날짜별 리포트 조회
 
 ```bash
-curl "http://localhost:8000/api/reports/reports/by_date/?date=2025-01-21"
+curl "http://localhost:10004/api/reports/reports/by_date/?date=2025-01-21"
 ```
 
 ### 8.3. 상태별 리포트 조회
 
 ```bash
-curl "http://localhost:8000/api/reports/reports/?status=success"
+curl "http://localhost:10004/api/reports/reports/?status=success"
 ```
 
 ---
@@ -523,7 +523,7 @@ urlpatterns += [
 ]
 ```
 
-접속: http://localhost:8000/api/docs/
+접속: http://localhost:10004/api/docs/
 
 ---
 

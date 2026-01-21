@@ -215,8 +215,8 @@ if cors_origins:
 else:
     # 개발 환경 기본값
     CORS_ALLOWED_ORIGINS = [
-        "http://localhost:3000",
-        "http://localhost:8080",
+        "http://localhost:10005",
+        "http://localhost:10003",
         "http://localhost",
     ]
 
