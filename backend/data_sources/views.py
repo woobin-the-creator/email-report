@@ -11,6 +11,8 @@ from django.db import connection
 from rest_framework import viewsets, status, views
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter, OpenApiExample
+from drf_spectacular.types import OpenApiTypes
 
 from .models import DataSource
 from .serializers import (
@@ -22,6 +24,64 @@ from .serializers import (
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary="데이터 소스 목록 조회",
+        description="등록된 데이터 소스 목록을 조회합니다. is_active 파라미터로 필터링 가능합니다.",
+        parameters=[
+            OpenApiParameter(
+                name='is_active',
+                type=OpenApiTypes.BOOL,
+                location=OpenApiParameter.QUERY,
+                description='활성 상태 필터링 (true/false)',
+                required=False,
+            ),
+        ],
+        tags=['data-sources'],
+    ),
+    create=extend_schema(
+        summary="데이터 소스 생성",
+        description="새로운 데이터 소스를 등록합니다.",
+        tags=['data-sources'],
+        examples=[
+            OpenApiExample(
+                '데이터 소스 생성 예시',
+                value={
+                    "name": "일일 매출 데이터",
+                    "table_name": "daily_sales",
+                    "description": "일별 매출 집계 테이블",
+                    "columns_metadata": {
+                        "date": "날짜",
+                        "revenue": "매출액",
+                        "profit": "순이익"
+                    },
+                    "is_active": True
+                },
+                request_only=True,
+            ),
+        ],
+    ),
+    retrieve=extend_schema(
+        summary="데이터 소스 상세 조회",
+        description="특정 데이터 소스의 상세 정보를 조회합니다.",
+        tags=['data-sources'],
+    ),
+    update=extend_schema(
+        summary="데이터 소스 전체 수정",
+        description="데이터 소스를 전체 수정합니다 (PUT).",
+        tags=['data-sources'],
+    ),
+    partial_update=extend_schema(
+        summary="데이터 소스 부분 수정",
+        description="데이터 소스를 부분 수정합니다 (PATCH).",
+        tags=['data-sources'],
+    ),
+    destroy=extend_schema(
+        summary="데이터 소스 삭제",
+        description="데이터 소스를 삭제합니다.",
+        tags=['data-sources'],
+    ),
+)
 class DataSourceViewSet(viewsets.ModelViewSet):
     """
     데이터 소스 ViewSet (CRUD)
@@ -124,6 +184,27 @@ class DataSourceViewSet(viewsets.ModelViewSet):
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @extend_schema(
+        summary="테이블 컬럼 목록 조회",
+        description="데이터 소스 테이블의 컬럼 목록을 조회합니다.",
+        tags=['data-sources'],
+        responses={
+            200: {
+                'type': 'object',
+                'properties': {
+                    'table_name': {'type': 'string'},
+                    'columns': {
+                        'type': 'array',
+                        'items': {'type': 'string'}
+                    }
+                },
+                'example': {
+                    'table_name': 'daily_sales',
+                    'columns': ['date', 'revenue', 'profit']
+                }
+            }
+        },
+    )
     @action(detail=True, methods=['get'])
     def columns(self, request, pk=None):
         """
@@ -162,6 +243,7 @@ class DataSourceViewSet(viewsets.ModelViewSet):
             )
 
 
+@extend_schema(tags=['data-query'])
 class DataQueryAPIView(views.APIView):
     """
     동적 데이터 조회 API (핵심 기능)
@@ -212,6 +294,54 @@ class DataQueryAPIView(views.APIView):
     ```
     """
 
+    @extend_schema(
+        summary="동적 데이터 조회",
+        description="등록된 데이터 소스 테이블에서 동적으로 데이터를 조회합니다. SQL Injection 방지를 위한 화이트리스트 검증이 적용됩니다.",
+        request=DataQuerySerializer,
+        responses={
+            200: {
+                'type': 'object',
+                'properties': {
+                    'data': {
+                        'type': 'array',
+                        'items': {'type': 'object'},
+                        'description': '조회된 데이터 배열'
+                    },
+                    'count': {
+                        'type': 'integer',
+                        'description': '조회된 데이터 건수'
+                    },
+                    'table_name': {
+                        'type': 'string',
+                        'description': '조회한 테이블명'
+                    }
+                },
+                'example': {
+                    'data': [
+                        {"date": "2024-01-01", "revenue": 10000, "profit": 3000},
+                        {"date": "2024-01-02", "revenue": 12000, "profit": 3500}
+                    ],
+                    'count': 2,
+                    'table_name': 'daily_sales'
+                }
+            }
+        },
+        examples=[
+            OpenApiExample(
+                '데이터 조회 예시',
+                value={
+                    "table_name": "daily_sales",
+                    "columns": ["date", "revenue", "profit"],
+                    "start_date": "2024-01-01",
+                    "end_date": "2024-01-31",
+                    "date_column": "date",
+                    "limit": 1000
+                },
+                request_only=True,
+            ),
+        ],
+        tags=['data-query'],
+    )
     def post(self, request):
         """
         동적 데이터 조회 실행

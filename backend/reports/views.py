@@ -11,6 +11,8 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter, OpenApiExample
+from drf_spectacular.types import OpenApiTypes
 
 from .models import ReportTemplate, GeneratedReport
 from .serializers import (
@@ -22,6 +24,75 @@ from .serializers import (
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary="템플릿 목록 조회",
+        description="모든 리포트 템플릿 목록을 조회합니다. is_active 파라미터로 필터링 가능합니다.",
+        parameters=[
+            OpenApiParameter(
+                name='is_active',
+                type=OpenApiTypes.BOOL,
+                location=OpenApiParameter.QUERY,
+                description='활성 상태 필터링 (true/false)',
+                required=False,
+            ),
+        ],
+        tags=['reports'],
+    ),
+    create=extend_schema(
+        summary="템플릿 생성",
+        description="새로운 리포트 템플릿을 생성합니다.",
+        tags=['reports'],
+        examples=[
+            OpenApiExample(
+                '템플릿 생성 예시',
+                value={
+                    "name": "일일 매출 리포트",
+                    "description": "일일 매출 현황을 보여주는 리포트",
+                    "layout": [
+                        {"i": "chart1", "x": 0, "y": 0, "w": 6, "h": 4},
+                        {"i": "chart2", "x": 6, "y": 0, "w": 6, "h": 4}
+                    ],
+                    "charts": [
+                        {
+                            "id": "chart1",
+                            "type": "bar",
+                            "title": "일별 매출",
+                            "dataBinding": {
+                                "xAxis": "date",
+                                "yAxis": ["revenue"],
+                                "dataSource": "daily_sales"
+                            },
+                            "style": {"colors": ["#8884d8"]}
+                        }
+                    ],
+                    "is_active": True
+                },
+                request_only=True,
+            ),
+        ],
+    ),
+    retrieve=extend_schema(
+        summary="템플릿 상세 조회",
+        description="특정 리포트 템플릿의 상세 정보를 조회합니다.",
+        tags=['reports'],
+    ),
+    update=extend_schema(
+        summary="템플릿 전체 수정",
+        description="리포트 템플릿을 전체 수정합니다 (PUT).",
+        tags=['reports'],
+    ),
+    partial_update=extend_schema(
+        summary="템플릿 부분 수정",
+        description="리포트 템플릿을 부분 수정합니다 (PATCH).",
+        tags=['reports'],
+    ),
+    destroy=extend_schema(
+        summary="템플릿 삭제",
+        description="리포트 템플릿을 삭제합니다. 연관된 리포트도 함께 삭제됩니다.",
+        tags=['reports'],
+    ),
+)
 class ReportTemplateViewSet(viewsets.ModelViewSet):
     """
     리포트 템플릿 ViewSet (CRUD + 커스텀 액션)
@@ -133,6 +204,11 @@ class ReportTemplateViewSet(viewsets.ModelViewSet):
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @extend_schema(
+        summary="활성 템플릿 목록 조회",
+        description="활성화된(is_active=True) 템플릿만 조회합니다.",
+        tags=['reports'],
+    )
     @action(detail=False, methods=['get'])
     def active(self, request):
         """
@@ -147,6 +223,29 @@ class ReportTemplateViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data)
 
+    @extend_schema(
+        summary="템플릿 복제",
+        description="기존 템플릿을 복제하여 새 템플릿을 생성합니다. 복제본은 비활성 상태로 생성됩니다.",
+        tags=['reports'],
+        request={
+            'application/json': {
+                'type': 'object',
+                'properties': {
+                    'name': {
+                        'type': 'string',
+                        'description': '복제될 템플릿의 이름 (선택, 기본값: "원본 이름 - 복사본")',
+                    }
+                },
+            }
+        },
+        examples=[
+            OpenApiExample(
+                '템플릿 복제 예시',
+                value={"name": "일일 매출 리포트 - 수정본"},
+                request_only=True,
+            ),
+        ],
+    )
     @action(detail=True, methods=['post'])
     def duplicate(self, request, pk=None):
         """
@@ -197,6 +296,49 @@ class ReportTemplateViewSet(viewsets.ModelViewSet):
         )
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary="생성된 리포트 목록 조회",
+        description="생성된 리포트 목록을 조회합니다. 상태, 템플릿, 날짜 범위로 필터링 가능합니다.",
+        parameters=[
+            OpenApiParameter(
+                name='status',
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description='리포트 상태 (pending/success/failed)',
+                required=False,
+                enum=['pending', 'success', 'failed'],
+            ),
+            OpenApiParameter(
+                name='template_id',
+                type=OpenApiTypes.INT,
+                location=OpenApiParameter.QUERY,
+                description='템플릿 ID로 필터링',
+                required=False,
+            ),
+            OpenApiParameter(
+                name='date_from',
+                type=OpenApiTypes.DATE,
+                location=OpenApiParameter.QUERY,
+                description='리포트 날짜 범위 시작 (YYYY-MM-DD)',
+                required=False,
+            ),
+            OpenApiParameter(
+                name='date_to',
+                type=OpenApiTypes.DATE,
+                location=OpenApiParameter.QUERY,
+                description='리포트 날짜 범위 종료 (YYYY-MM-DD)',
+                required=False,
+            ),
+        ],
+        tags=['generated-reports'],
+    ),
+    retrieve=extend_schema(
+        summary="생성된 리포트 상세 조회",
+        description="특정 생성된 리포트의 상세 정보를 조회합니다.",
+        tags=['generated-reports'],
+    ),
+)
 class GeneratedReportViewSet(viewsets.ReadOnlyModelViewSet):
     """
     생성된 리포트 ViewSet (읽기 전용)
@@ -257,6 +399,27 @@ class GeneratedReportViewSet(viewsets.ReadOnlyModelViewSet):
 
         return Response(serializer.data)
 
+    @extend_schema(
+        summary="날짜별 리포트 조회",
+        description="특정 날짜에 생성된 리포트를 조회합니다. template_id로 특정 템플릿의 리포트만 필터링 가능합니다.",
+        parameters=[
+            OpenApiParameter(
+                name='date',
+                type=OpenApiTypes.DATE,
+                location=OpenApiParameter.QUERY,
+                description='리포트 날짜 (YYYY-MM-DD)',
+                required=True,
+            ),
+            OpenApiParameter(
+                name='template_id',
+                type=OpenApiTypes.INT,
+                location=OpenApiParameter.QUERY,
+                description='템플릿 ID (선택)',
+                required=False,
+            ),
+        ],
+        tags=['generated-reports'],
+    )
     @action(detail=False, methods=['get'])
     def by_date(self, request):
         """
