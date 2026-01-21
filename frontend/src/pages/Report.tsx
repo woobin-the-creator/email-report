@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { BarChart, LineChart, PieChart, CombinationChart } from '../components/charts'
+import { fetchDataQuery, formatDateForApi } from '../api/client'
+import type { ChartDataItem } from '../types/api'
 
-// 샘플 데이터 (Phase 1: 하드코딩, Phase 2: API 연동)
+// 샘플 데이터 (폴백용 - API 호출 실패 시 사용)
 const monthlySalesData = [
   { month: '1월', sales: 4200, target: 4000 },
   { month: '2월', sales: 3800, target: 4000 },
@@ -39,9 +41,19 @@ const salesProfitData = [
   { month: '6월', sales: 4900, profit: 980 },
 ]
 
+// API 사용 여부 (개발 모드에서는 false로 설정하여 샘플 데이터 사용)
+const USE_API = import.meta.env.VITE_USE_API === 'true'
+
 const Report: React.FC = () => {
   const { date } = useParams<{ date: string }>()
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // 차트 데이터 상태
+  const [monthlySales, setMonthlySales] = useState<ChartDataItem[]>(monthlySalesData)
+  const [dailyVisitors, setDailyVisitors] = useState<ChartDataItem[]>(dailyVisitorsData)
+  const [category, setCategory] = useState<ChartDataItem[]>(categoryData)
+  const [salesProfit, setSalesProfit] = useState<ChartDataItem[]>(salesProfitData)
 
   // 날짜 포맷팅 및 유효성 검사 (yyyymmdd → yyyy년 mm월 dd일)
   const formatDate = (dateStr: string | undefined): string => {
@@ -67,8 +79,115 @@ const Report: React.FC = () => {
   }
 
   useEffect(() => {
-    // Phase 1: API 연동 전 임시 로딩
-    setTimeout(() => setLoading(false), 300)
+    const loadReportData = async () => {
+      if (!date) {
+        setError('날짜 파라미터가 없습니다')
+        setLoading(false)
+        return
+      }
+
+      // API 사용하지 않는 경우 샘플 데이터 사용
+      if (!USE_API) {
+        console.log('개발 모드: 샘플 데이터 사용')
+        setTimeout(() => setLoading(false), 300)
+        return
+      }
+
+      try {
+        setLoading(true)
+        setError(null)
+
+        // 날짜 형식 변환 (yyyymmdd → yyyy-mm-dd)
+        const apiDate = formatDateForApi(date)
+
+        console.log('API 호출 시작:', apiDate)
+
+        // 4개 차트 데이터 병렬 로딩
+        const results = await Promise.allSettled([
+          // Bar Chart - 월별 매출
+          fetchDataQuery({
+            table_name: 'monthly_sales',
+            columns: ['month', 'sales', 'target'],
+            start_date: '2025-01-01',
+            end_date: '2025-12-31',
+            limit: 12,
+          }),
+
+          // Line Chart - 일별 방문자
+          fetchDataQuery({
+            table_name: 'daily_visitors',
+            columns: ['day', 'visitors', 'pageViews'],
+            start_date: apiDate,
+            end_date: apiDate,
+            date_column: 'date',
+            limit: 7,
+          }),
+
+          // Pie Chart - 카테고리별 매출
+          fetchDataQuery({
+            table_name: 'category_sales',
+            columns: ['name', 'value'],
+            start_date: apiDate,
+            end_date: apiDate,
+            limit: 10,
+          }),
+
+          // Combination Chart - 매출 vs 수익
+          fetchDataQuery({
+            table_name: 'sales_profit',
+            columns: ['month', 'sales', 'profit'],
+            start_date: '2025-01-01',
+            end_date: '2025-12-31',
+            limit: 12,
+          }),
+        ])
+
+        // 결과 처리 (성공한 데이터는 사용, 실패한 데이터는 샘플 데이터 폴백)
+        const [monthlySalesResult, dailyVisitorsResult, categoryResult, salesProfitResult] =
+          results
+
+        if (monthlySalesResult.status === 'fulfilled') {
+          setMonthlySales(monthlySalesResult.value.data)
+          console.log('월별 매출 데이터 로드 성공:', monthlySalesResult.value.count, '건')
+        } else {
+          console.warn('월별 매출 API 실패, 샘플 데이터 사용:', monthlySalesResult.reason)
+        }
+
+        if (dailyVisitorsResult.status === 'fulfilled') {
+          setDailyVisitors(dailyVisitorsResult.value.data)
+          console.log('일별 방문자 데이터 로드 성공:', dailyVisitorsResult.value.count, '건')
+        } else {
+          console.warn('일별 방문자 API 실패, 샘플 데이터 사용:', dailyVisitorsResult.reason)
+        }
+
+        if (categoryResult.status === 'fulfilled') {
+          setCategory(categoryResult.value.data)
+          console.log('카테고리 데이터 로드 성공:', categoryResult.value.count, '건')
+        } else {
+          console.warn('카테고리 API 실패, 샘플 데이터 사용:', categoryResult.reason)
+        }
+
+        if (salesProfitResult.status === 'fulfilled') {
+          setSalesProfit(salesProfitResult.value.data)
+          console.log('매출/수익 데이터 로드 성공:', salesProfitResult.value.count, '건')
+        } else {
+          console.warn('매출/수익 API 실패, 샘플 데이터 사용:', salesProfitResult.reason)
+        }
+
+        // 모든 API가 실패한 경우 에러 표시
+        const allFailed = results.every((result) => result.status === 'rejected')
+        if (allFailed) {
+          setError('모든 데이터 로딩에 실패했습니다. 샘플 데이터를 표시합니다.')
+        }
+      } catch (err) {
+        console.error('리포트 데이터 로딩 실패:', err)
+        setError(err instanceof Error ? err.message : '데이터 로딩 중 오류 발생')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadReportData()
   }, [date])
 
   if (loading) {
@@ -86,6 +205,11 @@ const Report: React.FC = () => {
       <header style={styles.header}>
         <h1 style={styles.title}>📊 일일 리포트</h1>
         <p style={styles.date}>{formatDate(date)}</p>
+        {error && (
+          <div style={styles.errorBanner}>
+            ⚠️ {error}
+          </div>
+        )}
       </header>
 
       {/* 차트 그리드 */}
@@ -93,7 +217,7 @@ const Report: React.FC = () => {
         {/* Bar Chart - 월별 매출 */}
         <div style={styles.chartCard}>
           <BarChart
-            data={monthlySalesData}
+            data={monthlySales}
             xAxisKey="month"
             yAxisKey="sales"
             title="월별 매출 현황"
@@ -107,7 +231,7 @@ const Report: React.FC = () => {
         {/* Line Chart - 일별 방문자 */}
         <div style={styles.chartCard}>
           <LineChart
-            data={dailyVisitorsData}
+            data={dailyVisitors}
             xAxisKey="day"
             yAxisKey="visitors"
             title="일별 방문자 추이"
@@ -122,7 +246,7 @@ const Report: React.FC = () => {
         {/* Pie Chart - 카테고리별 매출 */}
         <div style={styles.chartCard}>
           <PieChart
-            data={categoryData}
+            data={category}
             dataKey="value"
             nameKey="name"
             title="카테고리별 매출 비중"
@@ -134,7 +258,7 @@ const Report: React.FC = () => {
         {/* Combination Chart - 매출 및 수익 */}
         <div style={styles.chartCard}>
           <CombinationChart
-            data={salesProfitData}
+            data={salesProfit}
             xAxisKey="month"
             barKey="sales"
             lineKey="profit"
@@ -193,6 +317,15 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '16px',
     color: '#6b7280',
     margin: 0,
+  },
+  errorBanner: {
+    marginTop: '16px',
+    padding: '12px 16px',
+    backgroundColor: '#fef3c7',
+    color: '#92400e',
+    borderRadius: '8px',
+    fontSize: '14px',
+    border: '1px solid #fbbf24',
   },
   chartGrid: {
     display: 'grid',
