@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     # Third-party apps
     "rest_framework",
     "corsheaders",
+    "drf_spectacular",  # API 문서화
 
     # Local apps
     "reports",
@@ -174,6 +175,33 @@ REST_FRAMEWORK = {
     'DEFAULT_PARSER_CLASSES': [
         'rest_framework.parsers.JSONParser',
     ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',  # OpenAPI 스키마 생성
+}
+
+
+# drf-spectacular settings
+# https://drf-spectacular.readthedocs.io/en/latest/settings.html
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Email Report API',
+    'DESCRIPTION': '상호작용 가능한 데일리 리포트 시스템 REST API',
+    'VERSION': '1.0.0',
+    'CONTACT': {
+        'name': 'Email Report Team',
+    },
+    'LICENSE': {
+        'name': 'Private',
+    },
+    'SERVE_INCLUDE_SCHEMA': False,  # Swagger UI에서 스키마 엔드포인트 숨김
+    'COMPONENT_SPLIT_REQUEST': True,  # 요청/응답 스키마 분리
+    'SCHEMA_PATH_PREFIX': r'/api/',  # API 경로 프리픽스
+    'SCHEMA_COERCE_PATH_PK_SUFFIX': True,  # URL {id} 패턴 자동 변환
+    'TAGS': [
+        {'name': 'reports', 'description': '리포트 템플릿 관리'},
+        {'name': 'generated-reports', 'description': '생성된 리포트 조회'},
+        {'name': 'data-sources', 'description': '데이터 소스 관리'},
+        {'name': 'data-query', 'description': '동적 데이터 조회'},
+    ],
 }
 
 
@@ -187,8 +215,8 @@ if cors_origins:
 else:
     # 개발 환경 기본값
     CORS_ALLOWED_ORIGINS = [
-        "http://localhost:3000",
-        "http://localhost:8080",
+        "http://localhost:10005",
+        "http://localhost:10003",
         "http://localhost",
     ]
 

@@ -35,10 +35,10 @@ RUN chmod +x /app/entrypoint.sh
 RUN mkdir -p /app/staticfiles /app/media
 
 # 포트 노출
-EXPOSE 8000
+EXPOSE 10004
 
 # Entrypoint 설정 (migrate, collectstatic 자동 실행)
 ENTRYPOINT ["/app/entrypoint.sh"]
 
 # Gunicorn으로 Django 실행
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
+CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:10004", "--workers", "3"]

@@ -14,7 +14,7 @@
 |----|------|------|------|
 | 2 | Django 프로젝트 생성 | DRF 설정, CORS 설정, 기본 구조 | ✅ |
 | 3 | DB 모델 생성 | `report_templates`, `data_sources`, `generated_reports` 테이블 | ✅ |
-| 4 | REST API 구현 | `/api/data/`, `/api/templates/` 엔드포인트 | ⬜ |
+| 4 | REST API 구현 | `/api/data/`, `/api/templates/` 엔드포인트 | ✅ |
 
 ---
 
