@@ -53,8 +53,17 @@
 | No | 작업 | 설명 | 상태 |
 |----|------|------|------|
 | 12 | API 연동 | Frontend에서 Django API 호출 및 차트 데이터 바인딩 | ⬜ |
-| 13 | Nginx 설정 | 프록시 설정 및 Docker 통합 테스트 | ⬜ |
+| 13 | Nginx 설정 | 프록시 설정 및 Docker 통합 테스트 | ✅ |
 | 14 | iframe 테스트 | 테스트용 HTML 페이지에서 iframe 삽입 확인 | ⬜ |
+
+---
+
+## 6. 추가 완료 작업 (Phase 1 외)
+
+| No | 작업 | 설명 | 상태 |
+|----|------|------|------|
+| 15 | Swagger API 문서화 | drf-spectacular 도입, OpenAPI 3.0 기반 자동 문서 생성 | ✅ |
+| 16 | 포트 번호 변경 | Nginx(10003), Backend(10004), Frontend(10005), MySQL(3308) | ✅ |
 
 ---
 
