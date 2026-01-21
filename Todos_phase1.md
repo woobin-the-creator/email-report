@@ -31,11 +31,11 @@
 
 | No | 작업 | 기능 | 상태 |
 |----|------|------|------|
-| 7 | **Bar 차트** | Tooltip, Data Label, Threshold/Target Line | ⬜ |
-| 8 | **Line 차트** | Tooltip, Data Label, Threshold/Target Line | ⬜ |
-| 9 | **Pie 차트** | Tooltip, Data Label | ⬜ |
-| 10 | **Combination 차트** | Bar+Line 결합, Dual Y-Axis (좌: Bar, 우: Line), Tooltip, Data Label, Threshold/Target Line | ⬜ |
-| 11 | ReportPage 완성 | 하드코딩된 샘플 데이터로 차트들 배치 | ⬜ |
+| 7 | **Bar 차트** | Tooltip, Data Label, Threshold/Target Line | ✅ |
+| 8 | **Line 차트** | Tooltip, Data Label, Threshold/Target Line | ✅ |
+| 9 | **Pie 차트** | Tooltip, Data Label | ✅ |
+| 10 | **Combination 차트** | Bar+Line 결합, Dual Y-Axis (좌: Bar, 우: Line), Tooltip, Data Label, Threshold/Target Line | ✅ |
+| 11 | ReportPage 완성 | 하드코딩된 샘플 데이터로 차트들 배치 | ✅ |
 
 ### 차트 공통 기능 명세
 
@@ -52,9 +52,61 @@
 
 | No | 작업 | 설명 | 상태 |
 |----|------|------|------|
-| 12 | API 연동 | Frontend에서 Django API 호출 및 차트 데이터 바인딩 | ⬜ |
+| 12 | API 연동 | Frontend에서 Django API 호출 및 차트 데이터 바인딩 | 🔄 |
 | 13 | Nginx 설정 | 프록시 설정 및 Docker 통합 테스트 | ✅ |
 | 14 | iframe 테스트 | 테스트용 HTML 페이지에서 iframe 삽입 확인 | ⬜ |
+
+### 작업 #12 상세 계획: API 연동
+
+#### 12-1. API 클라이언트 함수 작성
+**파일**: `frontend/src/api/client.ts`
+- `fetchDataQuery()` - 데이터 소스 쿼리 API 호출
+- `fetchTemplateByDate()` - 날짜별 템플릿 조회
+- Axios 또는 Fetch API 사용
+- 에러 처리 및 타입 정의
+
+**예시 요청**:
+```typescript
+POST /api/data-sources/query/
+{
+  "data_source_id": 1,
+  "columns": ["month", "sales", "target"],
+  "filters": [
+    {
+      "column": "date",
+      "operator": "gte",
+      "value": "2025-01-01"
+    }
+  ],
+  "order_by": ["month"]
+}
+```
+
+#### 12-2. 타입 정의 추가
+**파일**: `frontend/src/types/api.ts`
+- `DataQueryRequest` - 쿼리 요청 인터페이스
+- `DataQueryResponse` - 쿼리 응답 인터페이스
+- `ChartDataItem` - 차트 데이터 아이템 타입
+
+#### 12-3. Report 페이지 API 연동
+**파일**: `frontend/src/pages/Report.tsx`
+- `useEffect`에서 날짜 파라미터로 API 호출
+- 샘플 데이터를 API 응답 데이터로 교체
+- 로딩 상태, 에러 상태 관리
+- 데이터가 없을 경우 폴백 처리
+
+#### 12-4. 환경변수 설정
+**파일**: `frontend/.env.development`
+```
+VITE_API_BASE_URL=http://localhost:10003
+```
+
+#### 12-5. 테스트
+- [ ] API 호출 성공 확인
+- [ ] 차트에 데이터 정상 렌더링
+- [ ] 로딩 상태 UI 확인
+- [ ] 에러 처리 확인
+- [ ] 네트워크 탭 검증
 
 ---
 
