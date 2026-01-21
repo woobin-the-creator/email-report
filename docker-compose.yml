@@ -41,7 +41,12 @@ services:
     environment:
       - DEBUG=${DEBUG:-False}
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-here}
-      - DATABASE_URL=mysql://${MYSQL_USER:-django_user}:${MYSQL_PASSWORD:-django_password}@db:3306/${MYSQL_DATABASE:-email_reports}
+      # 개별 DB 환경 변수 추가 (settings.py에서 사용)
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-email_reports}
+      - MYSQL_USER=${MYSQL_USER:-django_user}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-django_password}
+      - MYSQL_HOST=db
+      - MYSQL_PORT=3306
       - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1}
       - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost:10005,http://localhost:10003}
     depends_on:
