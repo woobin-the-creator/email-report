@@ -133,6 +133,9 @@ class Command(BaseCommand):
         """
         BigQuery에서 데이터 조회
 
+        Note: 이 메서드 호출 전에 _bq_login()이 먼저 실행됩니다.
+              (handle() 메서드에서 순서 보장)
+
         TODO: 사내 환경에서 아래 코드를 실제 구현으로 교체하세요.
 
         Args:
@@ -145,6 +148,8 @@ class Command(BaseCommand):
         # 사내 환경 전용 코드 - 아래 주석을 해제하고 수정하세요
         # ============================================================
         # import {마스킹처리} as bdq
+        #
+        # # Note: bq_login()은 _bq_login() 메서드에서 이미 호출됨
         #
         # my_query = f"""
         # -- 여기에 SQL 쿼리를 입력하세요
