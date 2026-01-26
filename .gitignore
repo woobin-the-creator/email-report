@@ -171,3 +171,11 @@ coverage/
 *.key
 secrets/
 credentials/
+
+# -----------------
+# 사내 환경 전용 파일
+# -----------------
+# 민감 정보가 포함된 로컬 전용 스크립트
+*_local.py
+*_internal.py
+backend/data_sources/management/commands/bdq_*.py
