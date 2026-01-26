@@ -182,12 +182,61 @@ class DataSourceListSerializer(serializers.ModelSerializer):
             return 0
 
 
+class AggregationFieldSerializer(serializers.Serializer):
+    """
+    집계 함수 필드 Serializer
+
+    예: {"column": "fcc", "function": "AVG", "alias": "avg_fcc"}
+    """
+
+    column = serializers.CharField(
+        max_length=100,
+        required=True,
+        help_text="집계할 컬럼명"
+    )
+
+    function = serializers.ChoiceField(
+        choices=['AVG', 'SUM', 'COUNT', 'MIN', 'MAX'],
+        required=True,
+        help_text="집계 함수 (AVG, SUM, COUNT, MIN, MAX)"
+    )
+
+    alias = serializers.CharField(
+        max_length=100,
+        required=False,
+        help_text="결과 컬럼 별칭 (선택사항)"
+    )
+
+    def validate_column(self, value):
+        """컬럼명 검증"""
+        pattern = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
+        if not pattern.match(value):
+            raise serializers.ValidationError(
+                f"컬럼명 '{value}'이 유효하지 않습니다."
+            )
+        return value
+
+    def validate_alias(self, value):
+        """별칭 검증"""
+        if value:
+            pattern = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
+            if not pattern.match(value):
+                raise serializers.ValidationError(
+                    f"별칭 '{value}'이 유효하지 않습니다."
+                )
+        return value
+
+
 class DataQuerySerializer(serializers.Serializer):
     """
     데이터 조회 요청 Serializer
 
     차트에서 데이터를 조회할 때 사용
     SQL Injection 방지를 위한 엄격한 검증
+
+    집계 기능 지원:
+    - group_by_period: day/week/month별 집계
+    - aggregations: AVG, SUM, COUNT, MIN, MAX 집계 함수
     """
 
     table_name = serializers.CharField(
@@ -198,8 +247,8 @@ class DataQuerySerializer(serializers.Serializer):
 
     columns = serializers.ListField(
         child=serializers.CharField(max_length=100),
-        required=True,
-        help_text="조회할 컬럼명 배열"
+        required=False,
+        help_text="조회할 컬럼명 배열 (집계 시 GROUP BY에 사용)"
     )
 
     start_date = serializers.DateField(
@@ -225,6 +274,19 @@ class DataQuerySerializer(serializers.Serializer):
         min_value=1,
         max_value=10000,
         help_text="최대 조회 건수 (기본: 1000, 최대: 10000)"
+    )
+
+    # 집계 관련 필드
+    group_by_period = serializers.ChoiceField(
+        choices=['day', 'week', 'month', 'year'],
+        required=False,
+        help_text="날짜 그룹화 기간 (day, week, month, year)"
+    )
+
+    aggregations = serializers.ListField(
+        child=AggregationFieldSerializer(),
+        required=False,
+        help_text="집계 함수 배열"
     )
 
     def validate_table_name(self, value):
@@ -255,10 +317,9 @@ class DataQuerySerializer(serializers.Serializer):
         """
         컬럼명 배열 검증 (SQL Injection 방지)
         """
+        # 집계 사용 시 columns는 선택사항
         if not value:
-            raise serializers.ValidationError(
-                "최소 1개 이상의 컬럼을 지정해야 합니다."
-            )
+            return []
 
         pattern = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
 
@@ -291,6 +352,9 @@ class DataQuerySerializer(serializers.Serializer):
         """
         start_date = attrs.get('start_date')
         end_date = attrs.get('end_date')
+        columns = attrs.get('columns', [])
+        aggregations = attrs.get('aggregations', [])
+        group_by_period = attrs.get('group_by_period')
 
         # 날짜 범위 검증
         if start_date and end_date:
@@ -304,5 +368,19 @@ class DataQuerySerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 "날짜 필터링을 사용하려면 date_column을 지정해야 합니다."
             )
+
+        # 집계 사용 시 검증
+        if aggregations:
+            # group_by_period 사용 시 date_column 필수
+            if group_by_period and not attrs.get('date_column'):
+                raise serializers.ValidationError(
+                    "group_by_period를 사용하려면 date_column을 지정해야 합니다."
+                )
+        else:
+            # 집계가 없으면 columns 필수
+            if not columns:
+                raise serializers.ValidationError(
+                    "columns 또는 aggregations 중 하나는 반드시 지정해야 합니다."
+                )
 
         return attrs

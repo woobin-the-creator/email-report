@@ -362,11 +362,13 @@ class DataQueryAPIView(views.APIView):
         validated_data = serializer.validated_data
 
         table_name = validated_data['table_name']
-        columns = validated_data['columns']
+        columns = validated_data.get('columns', [])
         start_date = validated_data.get('start_date')
         end_date = validated_data.get('end_date')
         date_column = validated_data.get('date_column', 'date')
         limit = validated_data.get('limit', 1000)
+        group_by_period = validated_data.get('group_by_period')
+        aggregations = validated_data.get('aggregations', [])
 
         # 2. 테이블명 화이트리스트 검증 (1단계 방어)
         try:
@@ -398,7 +400,17 @@ class DataQueryAPIView(views.APIView):
             )
 
         # 요청된 컬럼이 실제 테이블 컬럼에 있는지 확인
-        invalid_columns = set(columns) - set(available_columns)
+        all_columns_to_check = set(columns)
+
+        # 집계 함수에 사용되는 컬럼도 검증
+        for agg in aggregations:
+            all_columns_to_check.add(agg['column'])
+
+        # date_column도 추가
+        if date_column:
+            all_columns_to_check.add(date_column)
+
+        invalid_columns = all_columns_to_check - set(available_columns)
         if invalid_columns:
             logger.warning(
                 f"데이터 조회 실패: 유효하지 않은 컬럼 {invalid_columns} "
@@ -412,25 +424,54 @@ class DataQueryAPIView(views.APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # date_column도 검증
-        if date_column and date_column not in available_columns:
-            logger.warning(
-                f"데이터 조회 실패: 유효하지 않은 날짜 컬럼 '{date_column}' "
-                f"(테이블: {table_name})"
-            )
-            return Response(
-                {
-                    'error': f"날짜 컬럼 '{date_column}'이(가) 테이블에 존재하지 않습니다.",
-                    'available_columns': available_columns
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
         # 4. SQL 쿼리 생성 (3단계 방어: 파라미터화된 쿼리)
         try:
-            # 컬럼명 백틱으로 감싸기 (추가 보호)
-            safe_columns = [f"`{col}`" for col in columns]
-            columns_str = ', '.join(safe_columns)
+            # SELECT 절 생성
+            select_parts = []
+            result_columns = []  # 결과 컬럼명 목록 (딕셔너리 변환용)
+
+            # 1. 날짜 그룹화 (group_by_period가 있는 경우)
+            if group_by_period:
+                date_func_map = {
+                    'day': 'DATE',
+                    'week': 'YEARWEEK',
+                    'month': "DATE_FORMAT(`{col}`, '%Y-%m')",
+                    'year': 'YEAR'
+                }
+
+                if group_by_period == 'month':
+                    date_alias = f"{date_column}_{group_by_period}"
+                    select_parts.append(
+                        f"DATE_FORMAT(`{date_column}`, '%Y-%m') as {date_alias}"
+                    )
+                    result_columns.append(date_alias)
+                else:
+                    date_func = date_func_map[group_by_period]
+                    date_alias = f"{date_column}_{group_by_period}"
+                    select_parts.append(f"{date_func}(`{date_column}`) as {date_alias}")
+                    result_columns.append(date_alias)
+
+            # 2. 일반 컬럼 (GROUP BY에 사용)
+            for col in columns:
+                select_parts.append(f"`{col}`")
+                result_columns.append(col)
+
+            # 3. 집계 함수
+            for agg in aggregations:
+                col = agg['column']
+                func = agg['function']
+                alias = agg.get('alias', f"{func.lower()}_{col}")
+                select_parts.append(f"{func}(`{col}`) as {alias}")
+                result_columns.append(alias)
+
+            # SELECT 절이 비어있으면 에러
+            if not select_parts:
+                return Response(
+                    {'error': '조회할 컬럼 또는 집계 함수를 지정해야 합니다.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            columns_str = ', '.join(select_parts)
 
             # 기본 쿼리
             query = f"SELECT {columns_str} FROM `{table_name}`"
@@ -450,8 +491,32 @@ class DataQueryAPIView(views.APIView):
             if where_clauses:
                 query += " WHERE " + " AND ".join(where_clauses)
 
-            # ORDER BY 추가 (날짜 컬럼이 있으면 날짜순 정렬)
-            if date_column in columns:
+            # GROUP BY 절 추가 (집계 사용 시)
+            if aggregations:
+                group_by_parts = []
+
+                # 날짜 그룹화
+                if group_by_period:
+                    if group_by_period == 'month':
+                        group_by_parts.append(f"DATE_FORMAT(`{date_column}`, '%Y-%m')")
+                    else:
+                        date_func = date_func_map[group_by_period]
+                        group_by_parts.append(f"{date_func}(`{date_column}`)")
+
+                # 일반 컬럼으로 그룹화
+                for col in columns:
+                    group_by_parts.append(f"`{col}`")
+
+                if group_by_parts:
+                    query += " GROUP BY " + ", ".join(group_by_parts)
+
+            # ORDER BY 추가
+            if group_by_period:
+                # 날짜 그룹화 시 날짜 기준 정렬
+                date_alias = f"{date_column}_{group_by_period}"
+                query += f" ORDER BY {date_alias} ASC"
+            elif date_column in columns:
+                # 일반 조회 시 날짜 컬럼이 있으면 날짜순 정렬
                 query += f" ORDER BY `{date_column}` ASC"
 
             # LIMIT 추가
@@ -459,7 +524,7 @@ class DataQueryAPIView(views.APIView):
 
             logger.info(
                 f"데이터 조회 쿼리 실행: {table_name} - "
-                f"컬럼 {len(columns)}개, 제한 {limit}건"
+                f"컬럼 {len(columns)}개, 집계 {len(aggregations)}개, 제한 {limit}건"
             )
             logger.debug(f"쿼리: {query}, 파라미터: {params}")
 
@@ -472,7 +537,7 @@ class DataQueryAPIView(views.APIView):
                 result_data = []
                 for row in rows:
                     row_dict = {}
-                    for idx, col in enumerate(columns):
+                    for idx, col in enumerate(result_columns):
                         value = row[idx]
 
                         # 날짜/시간 객체를 문자열로 변환

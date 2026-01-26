@@ -5,16 +5,35 @@
 // ==================== 데이터 조회 API ====================
 
 /**
+ * 집계 함수 정의
+ */
+export interface AggregationField {
+  /** 집계할 컬럼명 */
+  column: string
+
+  /** 집계 함수 (AVG, SUM, COUNT, MIN, MAX) */
+  function: 'AVG' | 'SUM' | 'COUNT' | 'MIN' | 'MAX'
+
+  /** 결과 컬럼 별칭 (선택사항) */
+  alias?: string
+}
+
+/**
  * 데이터 조회 요청 인터페이스
  *
  * POST /api/data-sources/query/
+ *
+ * 집계 기능 지원:
+ * - columns: GROUP BY에 사용할 컬럼 (집계 시 선택사항)
+ * - aggregations: AVG, SUM, COUNT, MIN, MAX 집계 함수
+ * - group_by_period: day/week/month/year별 날짜 그룹화
  */
 export interface DataQueryRequest {
   /** 조회할 테이블명 (DataSource에 등록된 테이블만 허용) */
   table_name: string
 
-  /** 조회할 컬럼명 배열 */
-  columns: string[]
+  /** 조회할 컬럼명 배열 (집계 시 GROUP BY에 사용) */
+  columns?: string[]
 
   /** 시작 날짜 (YYYY-MM-DD) */
   start_date?: string
@@ -27,6 +46,12 @@ export interface DataQueryRequest {
 
   /** 조회 건수 제한 (기본값: 1000) */
   limit?: number
+
+  /** 날짜 그룹화 기간 (day, week, month, year) */
+  group_by_period?: 'day' | 'week' | 'month' | 'year'
+
+  /** 집계 함수 배열 */
+  aggregations?: AggregationField[]
 }
 
 /**
