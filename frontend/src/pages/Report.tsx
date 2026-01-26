@@ -5,40 +5,33 @@ import { fetchDataQuery, formatDateForApi } from '../api/client'
 import type { ChartDataItem } from '../types/api'
 
 // 샘플 데이터 (폴백용 - API 호출 실패 시 사용)
-const monthlySalesData = [
-  { month: '1월', sales: 4200, target: 4000 },
-  { month: '2월', sales: 3800, target: 4000 },
-  { month: '3월', sales: 5100, target: 4500 },
-  { month: '4월', sales: 4700, target: 4500 },
-  { month: '5월', sales: 5300, target: 5000 },
-  { month: '6월', sales: 4900, target: 5000 },
+const dailyFccData = [
+  { cdate_day: '2025-01-20', avg_fcc: 1200 },
+  { cdate_day: '2025-01-21', avg_fcc: 1350 },
+  { cdate_day: '2025-01-22', avg_fcc: 1180 },
+  { cdate_day: '2025-01-23', avg_fcc: 1420 },
+  { cdate_day: '2025-01-24', avg_fcc: 1290 },
+  { cdate_day: '2025-01-25', avg_fcc: 1380 },
+  { cdate_day: '2025-01-26', avg_fcc: 1250 },
 ]
 
-const dailyVisitorsData = [
-  { day: '월', visitors: 1200, pageViews: 3600 },
-  { day: '화', visitors: 1400, pageViews: 4200 },
-  { day: '수', visitors: 1100, pageViews: 3300 },
-  { day: '목', visitors: 1600, pageViews: 4800 },
-  { day: '금', visitors: 1800, pageViews: 5400 },
-  { day: '토', visitors: 900, pageViews: 2700 },
-  { day: '일', visitors: 700, pageViews: 2100 },
+const weeklyFccData = [
+  { cdate_week: '202503', avg_fcc: 1280 },
+  { cdate_week: '202504', avg_fcc: 1320 },
+  { cdate_week: '202505', avg_fcc: 1250 },
+  { cdate_week: '202506', avg_fcc: 1290 },
 ]
 
-const categoryData = [
-  { name: '전자제품', value: 4500 },
-  { name: '의류', value: 3200 },
-  { name: '식품', value: 2800 },
-  { name: '가구', value: 1900 },
-  { name: '기타', value: 1200 },
+const fccGroupData = [
+  { fcc_group: 'Mobile', avg_fcc: 1450 },
+  { fcc_group: 'Desktop', avg_fcc: 980 },
+  { fcc_group: 'Tablet', avg_fcc: 1120 },
 ]
 
-const salesProfitData = [
-  { month: '1월', sales: 4200, profit: 840 },
-  { month: '2월', sales: 3800, profit: 720 },
-  { month: '3월', sales: 5100, profit: 1020 },
-  { month: '4월', sales: 4700, profit: 940 },
-  { month: '5월', sales: 5300, profit: 1100 },
-  { month: '6월', sales: 4900, profit: 980 },
+const fccGroupComparisonData = [
+  { fcc_group: 'Mobile', avg_fcc: 1450, max_fcc: 2200 },
+  { fcc_group: 'Desktop', avg_fcc: 980, max_fcc: 1650 },
+  { fcc_group: 'Tablet', avg_fcc: 1120, max_fcc: 1890 },
 ]
 
 // API 사용 여부 (개발 모드에서는 false로 설정하여 샘플 데이터 사용)
@@ -50,10 +43,10 @@ const Report: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
 
   // 차트 데이터 상태
-  const [monthlySales, setMonthlySales] = useState<ChartDataItem[]>(monthlySalesData)
-  const [dailyVisitors, setDailyVisitors] = useState<ChartDataItem[]>(dailyVisitorsData)
-  const [category, setCategory] = useState<ChartDataItem[]>(categoryData)
-  const [salesProfit, setSalesProfit] = useState<ChartDataItem[]>(salesProfitData)
+  const [dailyFcc, setDailyFcc] = useState<ChartDataItem[]>(dailyFccData)
+  const [weeklyFcc, setWeeklyFcc] = useState<ChartDataItem[]>(weeklyFccData)
+  const [fccGroup, setFccGroup] = useState<ChartDataItem[]>(fccGroupData)
+  const [fccGroupComparison, setFccGroupComparison] = useState<ChartDataItem[]>(fccGroupComparisonData)
 
   // 날짜 포맷팅 및 유효성 검사 (yyyymmdd → yyyy년 mm월 dd일)
   const formatDate = (dateStr: string | undefined): string => {
@@ -100,78 +93,114 @@ const Report: React.FC = () => {
         // 날짜 형식 변환 (yyyymmdd → yyyy-mm-dd)
         const apiDate = formatDateForApi(date)
 
-        console.log('API 호출 시작:', apiDate)
+        // 날짜 계산 (최근 7일, 4주, 1개월)
+        const endDate = new Date(apiDate)
 
-        // 4개 차트 데이터 병렬 로딩
+        // 최근 7일
+        const last7Days = new Date(endDate)
+        last7Days.setDate(endDate.getDate() - 6)
+        const startDate7Days = last7Days.toISOString().split('T')[0]
+
+        // 최근 4주 (28일)
+        const last4Weeks = new Date(endDate)
+        last4Weeks.setDate(endDate.getDate() - 27)
+        const startDate4Weeks = last4Weeks.toISOString().split('T')[0]
+
+        // 최근 1개월
+        const lastMonth = new Date(endDate)
+        lastMonth.setMonth(endDate.getMonth() - 1)
+        const startDateMonth = lastMonth.toISOString().split('T')[0]
+
+        console.log('API 호출 시작:', { apiDate, startDate7Days, startDate4Weeks, startDateMonth })
+
+        // 4개 차트 데이터 병렬 로딩 (fcc_data 기반)
         const results = await Promise.allSettled([
-          // Bar Chart - 월별 매출
+          // Bar Chart - 일별 FCC 평균 (최근 7일)
           fetchDataQuery({
-            table_name: 'monthly_sales',
-            columns: ['month', 'sales', 'target'],
-            start_date: '2025-01-01',
-            end_date: '2025-12-31',
-            limit: 12,
-          }),
-
-          // Line Chart - 일별 방문자
-          fetchDataQuery({
-            table_name: 'daily_visitors',
-            columns: ['day', 'visitors', 'pageViews'],
-            start_date: apiDate,
+            table_name: 'fcc_data',
+            columns: [],
+            start_date: startDate7Days,
             end_date: apiDate,
-            date_column: 'date',
+            date_column: 'cdate',
+            group_by_period: 'day',
+            aggregations: [
+              { column: 'fcc', function: 'AVG', alias: 'avg_fcc' },
+            ],
             limit: 7,
           }),
 
-          // Pie Chart - 카테고리별 매출
+          // Line Chart - 주별 FCC 평균 (최근 4주)
           fetchDataQuery({
-            table_name: 'category_sales',
-            columns: ['name', 'value'],
-            start_date: apiDate,
+            table_name: 'fcc_data',
+            columns: [],
+            start_date: startDate4Weeks,
             end_date: apiDate,
+            date_column: 'cdate',
+            group_by_period: 'week',
+            aggregations: [
+              { column: 'fcc', function: 'AVG', alias: 'avg_fcc' },
+            ],
+            limit: 4,
+          }),
+
+          // Pie Chart - FCC 그룹별 평균 (최근 1개월)
+          fetchDataQuery({
+            table_name: 'fcc_data',
+            columns: ['fcc_group'],
+            start_date: startDateMonth,
+            end_date: apiDate,
+            date_column: 'cdate',
+            aggregations: [
+              { column: 'fcc', function: 'AVG', alias: 'avg_fcc' },
+            ],
             limit: 10,
           }),
 
-          // Combination Chart - 매출 vs 수익
+          // Combination Chart - 그룹별 FCC 평균 vs 최대값 (최근 1개월)
           fetchDataQuery({
-            table_name: 'sales_profit',
-            columns: ['month', 'sales', 'profit'],
-            start_date: '2025-01-01',
-            end_date: '2025-12-31',
-            limit: 12,
+            table_name: 'fcc_data',
+            columns: ['fcc_group'],
+            start_date: startDateMonth,
+            end_date: apiDate,
+            date_column: 'cdate',
+            aggregations: [
+              { column: 'fcc', function: 'AVG', alias: 'avg_fcc' },
+              { column: 'fcc', function: 'MAX', alias: 'max_fcc' },
+            ],
+            limit: 10,
           }),
         ])
 
         // 결과 처리 (성공한 데이터는 사용, 실패한 데이터는 샘플 데이터 폴백)
-        const [monthlySalesResult, dailyVisitorsResult, categoryResult, salesProfitResult] =
+        const [dailyFccResult, weeklyFccResult, fccGroupResult, fccGroupComparisonResult] =
           results
 
-        if (monthlySalesResult.status === 'fulfilled') {
-          setMonthlySales(monthlySalesResult.value.data)
-          console.log('월별 매출 데이터 로드 성공:', monthlySalesResult.value.count, '건')
+        if (dailyFccResult.status === 'fulfilled') {
+          setDailyFcc(dailyFccResult.value.data)
+          console.log('일별 FCC 데이터 로드 성공:', dailyFccResult.value.count, '건')
         } else {
-          console.warn('월별 매출 API 실패, 샘플 데이터 사용:', monthlySalesResult.reason)
+          console.warn('일별 FCC API 실패, 샘플 데이터 사용:', dailyFccResult.reason)
         }
 
-        if (dailyVisitorsResult.status === 'fulfilled') {
-          setDailyVisitors(dailyVisitorsResult.value.data)
-          console.log('일별 방문자 데이터 로드 성공:', dailyVisitorsResult.value.count, '건')
+        if (weeklyFccResult.status === 'fulfilled') {
+          setWeeklyFcc(weeklyFccResult.value.data)
+          console.log('주별 FCC 데이터 로드 성공:', weeklyFccResult.value.count, '건')
         } else {
-          console.warn('일별 방문자 API 실패, 샘플 데이터 사용:', dailyVisitorsResult.reason)
+          console.warn('주별 FCC API 실패, 샘플 데이터 사용:', weeklyFccResult.reason)
         }
 
-        if (categoryResult.status === 'fulfilled') {
-          setCategory(categoryResult.value.data)
-          console.log('카테고리 데이터 로드 성공:', categoryResult.value.count, '건')
+        if (fccGroupResult.status === 'fulfilled') {
+          setFccGroup(fccGroupResult.value.data)
+          console.log('FCC 그룹 데이터 로드 성공:', fccGroupResult.value.count, '건')
         } else {
-          console.warn('카테고리 API 실패, 샘플 데이터 사용:', categoryResult.reason)
+          console.warn('FCC 그룹 API 실패, 샘플 데이터 사용:', fccGroupResult.reason)
         }
 
-        if (salesProfitResult.status === 'fulfilled') {
-          setSalesProfit(salesProfitResult.value.data)
-          console.log('매출/수익 데이터 로드 성공:', salesProfitResult.value.count, '건')
+        if (fccGroupComparisonResult.status === 'fulfilled') {
+          setFccGroupComparison(fccGroupComparisonResult.value.data)
+          console.log('FCC 그룹 비교 데이터 로드 성공:', fccGroupComparisonResult.value.count, '건')
         } else {
-          console.warn('매출/수익 API 실패, 샘플 데이터 사용:', salesProfitResult.reason)
+          console.warn('FCC 그룹 비교 API 실패, 샘플 데이터 사용:', fccGroupComparisonResult.reason)
         }
 
         // 모든 API가 실패한 경우 에러 표시
@@ -214,57 +243,57 @@ const Report: React.FC = () => {
 
       {/* 차트 그리드 */}
       <div style={styles.chartGrid}>
-        {/* Bar Chart - 월별 매출 */}
+        {/* Bar Chart - 일별 FCC 평균 (최근 7일) */}
         <div style={styles.chartCard}>
           <BarChart
-            data={monthlySales}
-            xAxisKey="month"
-            yAxisKey="sales"
-            title="월별 매출 현황"
-            thresholdValue={4500}
+            data={dailyFcc}
+            xAxisKey="cdate_day"
+            yAxisKey="avg_fcc"
+            title="일별 FCC 평균 (최근 7일)"
+            thresholdValue={1300}
             thresholdLabel="목표"
             showDataLabel
             height={280}
           />
         </div>
 
-        {/* Line Chart - 일별 방문자 */}
+        {/* Line Chart - 주별 FCC 추이 (최근 4주) */}
         <div style={styles.chartCard}>
           <LineChart
-            data={dailyVisitors}
-            xAxisKey="day"
-            yAxisKey="visitors"
-            title="일별 방문자 추이"
-            thresholdValue={1500}
-            thresholdLabel="평균"
+            data={weeklyFcc}
+            xAxisKey="cdate_week"
+            yAxisKey="avg_fcc"
+            title="주별 FCC 추이 (최근 4주)"
+            thresholdValue={1300}
+            thresholdLabel="목표"
             showDataLabel
             lineType="monotone"
             height={280}
           />
         </div>
 
-        {/* Pie Chart - 카테고리별 매출 */}
+        {/* Pie Chart - FCC 그룹별 평균 */}
         <div style={styles.chartCard}>
           <PieChart
-            data={category}
-            dataKey="value"
-            nameKey="name"
-            title="카테고리별 매출 비중"
+            data={fccGroup}
+            dataKey="avg_fcc"
+            nameKey="fcc_group"
+            title="FCC 그룹별 평균 비율"
             showDataLabel
             height={280}
           />
         </div>
 
-        {/* Combination Chart - 매출 및 수익 */}
+        {/* Combination Chart - 그룹별 FCC 평균 vs 최대값 */}
         <div style={styles.chartCard}>
           <CombinationChart
-            data={salesProfit}
-            xAxisKey="month"
-            barKey="sales"
-            lineKey="profit"
-            title="매출 vs 수익 비교"
-            thresholdValue={900}
-            thresholdLabel="수익 목표"
+            data={fccGroupComparison}
+            xAxisKey="fcc_group"
+            barKey="avg_fcc"
+            lineKey="max_fcc"
+            title="FCC 그룹별 평균 vs 최대값"
+            thresholdValue={1500}
+            thresholdLabel="목표 평균"
             showDataLabel
             height={280}
           />
