@@ -6,8 +6,8 @@ BigQuery 연결 정보 및 SQL 쿼리는 보안상 Git에 커밋하지 않습니
 
 Usage:
     python manage.py load_fcc_data
-    python manage.py load_fcc_data --days 30
     python manage.py load_fcc_data --dry-run
+    python manage.py load_fcc_data --append
 """
 
 from django.core.management.base import BaseCommand, CommandError
@@ -22,12 +22,6 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '--days',
-            type=int,
-            default=30,
-            help='조회할 일수 (기본값: 30일)'
-        )
-        parser.add_argument(
             '--dry-run',
             action='store_true',
             help='실제 저장 없이 테스트 실행'
@@ -39,14 +33,13 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        days = options['days']
         dry_run = options['dry_run']
         append_mode = options['append']
 
         self.stdout.write(self.style.WARNING('=' * 60))
         self.stdout.write(self.style.WARNING('fcc_data 로드 시작'))
         self.stdout.write(self.style.WARNING('=' * 60))
-        self.stdout.write(f'조회 기간: 최근 {days}일')
+        self.stdout.write(f'조회 기간: 최근 1년 (SQL 쿼리에 정의됨)')
         self.stdout.write(f'모드: {"DRY RUN" if dry_run else "실제 실행"}')
         self.stdout.write(f'저장 방식: {"추가" if append_mode else "전체 교체"}')
         self.stdout.write('')
@@ -60,9 +53,9 @@ class Command(BaseCommand):
             raise CommandError(f'BigQuery 로그인 실패: {str(e)}')
 
         # 2. 데이터 조회
-        self.stdout.write(f'\n[2/4] BigQuery에서 데이터 조회 (최근 {days}일)...')
+        self.stdout.write('\n[2/4] BigQuery에서 데이터 조회 (최근 1년)...')
         try:
-            df = self._fetch_data(days)
+            df = self._fetch_data()
             self.stdout.write(
                 self.style.SUCCESS(f'✓ {len(df):,}개 행 조회됨')
             )
@@ -129,17 +122,14 @@ class Command(BaseCommand):
             "_bq_login() 메서드를 사내 환경에 맞게 수정하세요."
         )
 
-    def _fetch_data(self, days: int) -> pd.DataFrame:
+    def _fetch_data(self) -> pd.DataFrame:
         """
-        BigQuery에서 데이터 조회
+        BigQuery에서 데이터 조회 (최근 1년)
 
         Note: 이 메서드 호출 전에 _bq_login()이 먼저 실행됩니다.
               (handle() 메서드에서 순서 보장)
 
         TODO: 사내 환경에서 아래 코드를 실제 구현으로 교체하세요.
-
-        Args:
-            days: 조회할 일수
 
         Returns:
             조회된 DataFrame (컬럼: cdate, fcc_group, fcc, classname, classid)
@@ -151,10 +141,9 @@ class Command(BaseCommand):
         #
         # # Note: bq_login()은 _bq_login() 메서드에서 이미 호출됨
         #
-        # my_query = f"""
+        # my_query = """
         # -- 여기에 SQL 쿼리를 입력하세요
-        # -- days 파라미터 활용 예시:
-        # -- WHERE cdate >= DATE_SUB(CURRENT_DATE(), INTERVAL {days} DAY)
+        # -- (쿼리 내에 최근 1년 기간이 이미 정의되어 있음)
         # """
         #
         # df = bdq.getData(
