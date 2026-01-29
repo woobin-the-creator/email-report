@@ -166,3 +166,51 @@ export interface ChartStyle {
   /** 데이터 레이블 표시 여부 */
   showDataLabel?: boolean
 }
+
+// ==================== 템플릿 API 요청/응답 ====================
+
+/** 템플릿 생성 요청 */
+export interface CreateTemplateRequest {
+  name: string
+  description?: string
+  layout: LayoutItem[]
+  charts: ChartConfig[]
+  is_active?: boolean
+}
+
+/** 템플릿 수정 요청 */
+export interface UpdateTemplateRequest {
+  name?: string
+  description?: string
+  layout?: LayoutItem[]
+  charts?: ChartConfig[]
+  is_active?: boolean
+}
+
+/** 템플릿 목록 아이템 (간소화) */
+export interface TemplateListItem {
+  id: number
+  name: string
+  description: string
+  chart_count: number
+  is_active: boolean
+  updated_at: string
+}
+
+// ==================== 데이터 소스 API 응답 ====================
+
+/** 데이터 소스 목록 아이템 */
+export interface DataSourceListItem {
+  id: number
+  name: string
+  table_name: string
+  description: string
+  is_active: boolean
+  updated_at: string
+}
+
+/** 컬럼 조회 응답 */
+export interface ColumnsResponse {
+  table_name: string
+  columns: string[]
+}

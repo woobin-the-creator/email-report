@@ -83,7 +83,7 @@ class ReportTemplateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("최소 1개 이상의 차트가 필요합니다.")
 
         required_fields = {'id', 'type', 'title', 'dataBinding'}
-        valid_chart_types = {'bar', 'line', 'pie', 'area'}
+        valid_chart_types = {'bar', 'line', 'pie', 'area', 'combination'}
 
         for idx, chart in enumerate(value):
             if not isinstance(chart, dict):

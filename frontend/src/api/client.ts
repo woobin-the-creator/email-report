@@ -8,6 +8,12 @@ import type {
   DataQueryRequest,
   DataQueryResponse,
   ApiErrorResponse,
+  ReportTemplate,
+  TemplateListItem,
+  CreateTemplateRequest,
+  UpdateTemplateRequest,
+  DataSourceListItem,
+  ColumnsResponse,
 } from '../types/api'
 
 // 환경변수에서 API Base URL 가져오기
@@ -161,7 +167,7 @@ export function getDateRange(
       endDate = date
       break
 
-    case 'week':
+    case 'week': {
       // 해당 주의 월요일 ~ 일요일
       const dayOfWeek = date.getDay()
       const monday = new Date(date)
@@ -173,6 +179,7 @@ export function getDateRange(
       startDate = monday
       endDate = sunday
       break
+    }
 
     case 'month':
       // 해당 월의 1일 ~ 말일
@@ -194,5 +201,225 @@ export function getDateRange(
   return {
     start_date: startDate.toISOString().split('T')[0],
     end_date: endDate.toISOString().split('T')[0],
+  }
+}
+
+// ==================== 템플릿 API ====================
+
+/** 템플릿 목록 조회 */
+export async function fetchTemplates(): Promise<TemplateListItem[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/reports/templates/`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      const errorData: ApiErrorResponse = await response.json()
+      throw new ApiError(
+        errorData.error || `API 호출 실패: ${response.status}`,
+        response.status,
+        errorData
+      )
+    }
+
+    return await response.json()
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error
+    }
+    throw new ApiError(
+      error instanceof Error ? error.message : '템플릿 목록 조회 중 알 수 없는 오류 발생'
+    )
+  }
+}
+
+/** 템플릿 상세 조회 */
+export async function fetchTemplate(id: number): Promise<ReportTemplate> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/reports/templates/${id}/`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      const errorData: ApiErrorResponse = await response.json()
+      throw new ApiError(
+        errorData.error || `API 호출 실패: ${response.status}`,
+        response.status,
+        errorData
+      )
+    }
+
+    return await response.json()
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error
+    }
+    throw new ApiError(
+      error instanceof Error ? error.message : '템플릿 조회 중 알 수 없는 오류 발생'
+    )
+  }
+}
+
+/** 템플릿 생성 */
+export async function createTemplate(data: CreateTemplateRequest): Promise<ReportTemplate> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/reports/templates/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
+
+    if (!response.ok) {
+      const errorData: ApiErrorResponse = await response.json()
+      throw new ApiError(
+        errorData.error || `API 호출 실패: ${response.status}`,
+        response.status,
+        errorData
+      )
+    }
+
+    return await response.json()
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error
+    }
+    throw new ApiError(
+      error instanceof Error ? error.message : '템플릿 생성 중 알 수 없는 오류 발생'
+    )
+  }
+}
+
+/** 템플릿 수정 */
+export async function updateTemplate(
+  id: number,
+  data: UpdateTemplateRequest
+): Promise<ReportTemplate> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/reports/templates/${id}/`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
+
+    if (!response.ok) {
+      const errorData: ApiErrorResponse = await response.json()
+      throw new ApiError(
+        errorData.error || `API 호출 실패: ${response.status}`,
+        response.status,
+        errorData
+      )
+    }
+
+    return await response.json()
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error
+    }
+    throw new ApiError(
+      error instanceof Error ? error.message : '템플릿 수정 중 알 수 없는 오류 발생'
+    )
+  }
+}
+
+/** 템플릿 삭제 */
+export async function deleteTemplate(id: number): Promise<void> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/reports/templates/${id}/`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      const errorData: ApiErrorResponse = await response.json()
+      throw new ApiError(
+        errorData.error || `API 호출 실패: ${response.status}`,
+        response.status,
+        errorData
+      )
+    }
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error
+    }
+    throw new ApiError(
+      error instanceof Error ? error.message : '템플릿 삭제 중 알 수 없는 오류 발생'
+    )
+  }
+}
+
+// ==================== 데이터 소스 API ====================
+
+/** 데이터 소스 목록 조회 */
+export async function fetchDataSources(): Promise<DataSourceListItem[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/data-sources/sources/`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      const errorData: ApiErrorResponse = await response.json()
+      throw new ApiError(
+        errorData.error || `API 호출 실패: ${response.status}`,
+        response.status,
+        errorData
+      )
+    }
+
+    return await response.json()
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error
+    }
+    throw new ApiError(
+      error instanceof Error ? error.message : '데이터 소스 조회 중 알 수 없는 오류 발생'
+    )
+  }
+}
+
+/** 데이터 소스 컬럼 조회 */
+export async function fetchColumns(dataSourceId: number): Promise<ColumnsResponse> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/data-sources/sources/${dataSourceId}/columns/`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    )
+
+    if (!response.ok) {
+      const errorData: ApiErrorResponse = await response.json()
+      throw new ApiError(
+        errorData.error || `API 호출 실패: ${response.status}`,
+        response.status,
+        errorData
+      )
+    }
+
+    return await response.json()
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error
+    }
+    throw new ApiError(
+      error instanceof Error ? error.message : '컬럼 조회 중 알 수 없는 오류 발생'
+    )
   }
 }
