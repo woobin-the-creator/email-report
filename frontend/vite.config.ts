@@ -8,7 +8,13 @@ export default defineConfig({
     port: 10005,
     strictPort: true,
     watch: {
-      usePolling: true
+      usePolling: true,
+      interval: 100
+    },
+    hmr: {
+      host: 'localhost',
+      port: 10005,
+      clientPort: 10005
     }
   },
   build: {
